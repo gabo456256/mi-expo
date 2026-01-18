@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Exposición: El Piano Viejo - Gabriel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-blue: #00d2ff;
+            --dark-bg: #030a16;
+            --glass: rgba(0, 210, 255, 0.1);
+        }
+
+        body, html {
+            margin: 0; padding: 0;
+            background: var(--dark-bg);
+            color: white;
+            font-family: 'Share Tech Mono', monospace;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* FONDO DE NEÓN Y LÍNEAS */
+        .background {
+            position: fixed;
+            inset: 0;
+            background: 
+                radial-gradient(circle at 50% 50%, #0a1931 0%, #030a16 100%),
+                linear-gradient(rgba(0, 210, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 210, 255, 0.05) 1px, transparent 1px);
+            background-size: 100% 100%, 50px 50px, 50px 50px;
+            z-index: -1;
+        }
+
+        /* --- FASE 1: INICIO --- */
+        #fase1 {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            height: 100vh; text-align: center;
+        }
+
+        .btn-play {
+            padding: 20px 50px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            color: var(--neon-blue);
+            background: transparent;
+            border: 2px solid var(--neon-blue);
+            cursor: pointer;
+            box-shadow: 0 0 20px var(--neon-blue);
+            text-transform: uppercase;
+            transition: 0.3s;
+            position: relative;
+        }
+
+        .btn-play:hover {
+            background: var(--neon-blue);
+            color: black;
+            box-shadow: 0 0 50px var(--neon-blue);
+        }
+
+        /* --- CONTENEDOR DE LA EXPO --- */
+        .slide {
+            position: fixed; inset: 0;
+            display: none; flex-direction: column;
+            justify-content: center; align-items: center;
+            padding: 50px; padding-top: 100px;
+            background: rgba(3, 10, 22, 0.9);
+        }
+
+        .card {
+            background: var(--glass);
+            border: 1px solid var(--neon-blue);
+            padding: 40px;
+            max-width: 800px;
+            box-shadow: 0 0 30px rgba(0, 210, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 5px;
+            position: relative;
+        }
+
+        h1, h2 { font-family: 'Orbitron', sans-serif; color: var(--neon-blue); }
+        .texto-expo { line-height: 1.6; font-size: 1.2rem; }
+
+        /* --- EFECTOS --- */
+        .glitch-text { animation: glitch 2s infinite; }
+        @keyframes glitch {
+            0% { text-shadow: 2px 0 var(--neon-blue); }
+            50% { text-shadow: -2px 0 #ff00ff; }
+            100% { text-shadow: 2px 0 var(--neon-blue); }
+        }
+
+        .typing::after { content: "|"; animation: blink 0.7s infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* --- CALIFICACIÓN FINAL --- */
+        .rating-btn {
+            background: transparent; border: 1px solid var(--neon-blue);
+            color: var(--neon-blue); padding: 10px 20px; margin: 5px;
+            cursor: pointer; font-family: 'Orbitron';
+        }
+        .rating-btn:hover { background: var(--neon-blue); color: black; }
+
+        /* --- NAVEGACIÓN --- */
+        #btn-next {
+            position: fixed; bottom: 30px; right: 30px;
+            padding: 10px 30px; background: transparent; color: var(--neon-blue);
+            border: 1px solid var(--neon-blue); cursor: pointer; display: none;
+            font-family: 'Orbitron'; z-index: 2000;
+        }
+    </style>
+</head>
+<body>
+
+<div class="background"></div>
+
+<audio id="bgMusic" loop>
+    <source src="https://www.bensound.com/bensound-music/bensound-scifi.mp3" type="audio/mpeg">
+</audio>
+
+<div id="fase1">
+    <h1 class="glitch-text" style="font-size: 3.5rem;">CASTELLANO_EXPO.exe</h1>
+    <p>Sujeto: GABRIEL | Tema: EL PIANO VIEJO</p>
+    <button class="btn-play" onclick="comenzar()">INICIAR CARGA</button>
+</div>
+
+<div id="intro" class="slide">
+    <div class="card">
+        <h2 id="intro-text"></h2>
+    </div>
+</div>
+
+<div id="desarrollo" class="slide">
+    <div class="card" id="content-card">
+        <h2 id="title-slide">CARGANDO...</h2>
+        <div id="text-slide" class="texto-expo"></div>
+    </div>
+</div>
+
+<div id="final" class="slide">
+    <div class="card" style="text-align: center;">
+        <h2 class="glitch-text">SISTEMA COMPLETADO</h2>
+        <p>¿Qué calificación merece esta transmisión?</p>
+        <div id="botones-voto">
+            <script>
+                for(let i=1; i<=10; i++) {
+                    document.write(`<button class="rating-btn" onclick="votar(${i})">${i}</button>`);
+                }
+            </script>
+        </div>
+        <h1 id="resultado-voto" style="margin-top: 20px;"></h1>
+    </div>
+</div>
+
+<button id="btn-next" onclick="siguienteSlide()">SIGUIENTE >> </button>
+
+<script>
+    let slideActual = 0;
+    const music = document.getElementById('bgMusic');
+    
+    const contenido = [
+        {
+            titulo: "1. EL AUTOR: ARTURO USLAR PIETRI",
+            texto: "Uslar Pietri fue un caraqueño brillante (1906-2001). Escritor, político y abogado. Introdujo el término **Realismo Mágico**. Este cuento de 1936 es un ejemplo perfecto de cómo lo fantástico y lo real se mezclan."
+        },
+        {
+            titulo: "2. RESUMEN: LA CASONA Y EL PIANO",
+            texto: "En una casona de Caracas, Luisita y Angélica cuidan un piano 'herido de muerte'. Con cuerdas rotas y lleno de **polillas**, el piano ya no hace música, solo ruidos secos. Es el símbolo de la ruina familiar."
+        },
+        {
+            titulo: "3. CONTEXTO: EL CAMBIO DE ERA",
+            texto: "Representa la transición de la Venezuela aristocrática a la era petrolera. El piano es la vieja clase social que se quedó sin dinero pero sigue aferrada a las apariencias. La lucha entre lo que muere y lo que nace."
+        },
+        {
+            titulo: "4. ANÁLISIS: LA PERSONIFICACIÓN",
+            texto: "El piano no es un mueble, es un personaje que sufre. Las polillas son la metáfora del tiempo que devora el pasado. Vivir de la nostalgia es peligroso: el silencio del piano es el silencio de una generación agotada."
+        },
+        {
+            titulo: "5. COMPRENSIÓN: LA LECCIÓN",
+            texto: "Hay que aprender a **SOLTAR**. Las hermanas dejaron de vivir por cuidar un cadáver de madera. Lo que no se mueve se pudre. Para que entre música nueva, hay que dejar de intentar tocar un piano desafinado."
+        }
+    ];
+
+    function comenzar() {
+        music.play();
+        document.getElementById('fase1').style.display = 'none';
+        document.getElementById('intro').style.display = 'flex';
+        typeWriter("intro-text", "A continuación verás mi expo de castellano, no te burles...", () => {
+            setTimeout(() => {
+                document.getElementById('btn-next').style.display = 'block';
+            }, 1000);
+        });
+    }
+
+    function siguienteSlide() {
+        if (slideActual < contenido.length) {
+            document.getElementById('intro').style.display = 'none';
+            document.getElementById('desarrollo').style.display = 'flex';
+            
+            const data = contenido[slideActual];
+            document.getElementById('title-slide').innerText = data.titulo;
+            document.getElementById('text-slide').innerText = data.texto;
+            
+            slideActual++;
+        } else {
+            document.getElementById('desarrollo').style.display = 'none';
+            document.getElementById('btn-next').style.display = 'none';
+            document.getElementById('final').style.display = 'flex';
+        }
+    }
+
+    function typeWriter(id, text, callback) {
+        let i = 0;
+        const ele = document.getElementById(id);
+        ele.innerHTML = "";
+        const timer = setInterval(() => {
+            ele.innerHTML += text.charAt(i);
+            i++;
+            if (i >= text.length) {
+                clearInterval(timer);
+                if(callback) callback();
+            }
+        }, 50);
+    }
+
+    function votar(nota) {
+        const res = document.getElementById('resultado-voto');
+        document.getElementById('botones-voto').style.display = 'none';
+        if(nota >= 8) {
+            res.innerHTML = `SISTEMA: NOTA ${nota}/10 <br> <span style="color:#00ff00">¡MISSIÓN EXITOSA, GABRIEL!</span>`;
+        } else {
+            res.innerHTML = `SISTEMA: NOTA ${nota}/10 <br> <span style="color:#ff0000">ERROR: CRÍTICA DETECTADA.</span>`;
+        }
+    }
+</script>
+
+</body>
+</html>
